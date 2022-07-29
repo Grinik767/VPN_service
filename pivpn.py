@@ -20,7 +20,8 @@ class Pivpn:
             data = [f'{line[0] + 1}. {line[1]}' for line in list(enumerate(data))]
         return data
 
-    def add_new_user(self, name, date_s, date_f, cost, count, count_max=0, platform='Авито', phone='', qr=True):
+    def add_new_user(self, name, date_s, date_f, cost, count, count_max=0, platform='Авито', phone='', qr=True,
+                     no_ads=False):
         try:
             self.disk.download(src_path='/VPN/Clients.xlsx', path_or_file='Clients.xlsx')
             wb = load_workbook('Clients.xlsx')
@@ -33,6 +34,10 @@ class Pivpn:
             wb.save('Clients.xlsx')
             self.disk.upload(path_or_file='Clients.xlsx', dst_path='/VPN/Clients.xlsx', overwrite=True)
             os.remove('Clients.xlsx')
+            if no_ads:
+                self.bash.reload_file('/etc/pivpn/wireguard', 'NO_ADS.conf', 'setupVars.conf')
+            else:
+                self.bash.reload_file('/etc/pivpn/wireguard', 'ADS.conf', 'setupVars.conf')
             num = len(self.get_list_users())
             for i in range(1, count + 1):
                 self.bash.exec_command('pivpn add', f"{nickname}_{i}")
@@ -61,4 +66,4 @@ if __name__ == '__main__':
     bash = Bash(host=os.environ['HOST'], user=os.environ['USER'], password=os.environ['PASSWORD'])
     disk = yadisk.YaDisk(id=os.environ['DISK_ID'], secret=os.environ['DISK_SECRET'], token=os.environ['DISK_TOKEN'])
     vpn = Pivpn(bash, disk)
-    vpn.add_new_user('Григорий', '30.07.2022', '1', '1', 1)
+    vpn.add_new_user('Григорий', '30.07.2022', '1', '1', 1, no_ads=True)

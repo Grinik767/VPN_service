@@ -1,6 +1,4 @@
 import paramiko
-from dotenv import load_dotenv
-import os
 
 
 class Bash:
@@ -28,23 +26,16 @@ class Bash:
         except Exception as err:
             return False, err
 
-    def upload_file(self, directory, filename):
+    def reload_file(self, directory, filename, filename_to):
         try:
             sftp_client = self.client.open_sftp()
             sftp_client.chdir(directory)
             f = open(filename)
-            sftp_client.putfo(f, filename)
+            sftp_client.putfo(f, filename_to)
+            f.close()
             sftp_client.close()
         except Exception as err:
             return False, err
 
     def close_connection(self):
         self.client.close()
-
-
-if __name__ == '__main__':
-    dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
-    if os.path.exists(dotenv_path):
-        load_dotenv(dotenv_path)
-    bash = Bash(host=os.environ['HOST'], user=os.environ['USER'], password=os.environ['PASSWORD'])
-    bash.upload_file('/etc/pivpn/wireguard', 'TV.conf')
