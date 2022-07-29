@@ -24,13 +24,25 @@ class Pivpn:
                      no_ads=False):
         try:
             self.disk.download(src_path='/VPN/Clients.xlsx', path_or_file='Clients.xlsx')
-            wb = load_workbook('Clients.xlsx')
-            ws = wb.active
-            new = len(ws['A']) + 1
-            nickname = f"Client{new}"
             if count_max == 0:
                 count_max = count
-            ws.append([name, nickname, platform, phone, date_s, date_f, cost, count, count_max])
+            wb = load_workbook('Clients.xlsx')
+            ws = wb.active
+            s = 0
+            for i in range(1, len(ws['A']) + 2):
+                if not ws[f'A{i}'].value:
+                    s = i
+                    break
+            nickname = f"Client{s}"
+            ws[f'A{s}'] = name
+            ws[f'B{s}'] = nickname
+            ws[f'C{s}'] = platform
+            ws[f'D{s}'] = phone
+            ws[f'E{s}'] = date_s
+            ws[f'F{s}'] = date_f
+            ws[f'G{s}'] = cost
+            ws[f'H{s}'] = count
+            ws[f'I{s}'] = count_max
             wb.save('Clients.xlsx')
             self.disk.upload(path_or_file='Clients.xlsx', dst_path='/VPN/Clients.xlsx', overwrite=True)
             os.remove('Clients.xlsx')
@@ -52,6 +64,9 @@ class Pivpn:
                     os.remove(f"{nickname}_{i}.txt")
                 else:
                     self.bash.download_file('/home/vpn/configs', filename=f"{nickname}_{i}.conf")
+                    self.disk.upload(path_or_file=f'{nickname}_{i}.conf', dst_path=f'/VPN/{nickname}_{i}.conf',
+                                     overwrite=True)
+                    os.remove(f'{nickname}_{i}.conf')
         except Exception as err:
             return False, err
 
