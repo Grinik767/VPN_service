@@ -51,7 +51,7 @@ class Pivpn:
                     textfile_to_image(f"{nickname}_{i}.txt").save(f"{nickname}_{i}.jpg")
                     os.remove(f"{nickname}_{i}.txt")
                 else:
-                    pass
+                    self.bash.download_file('/home/vpn/configs', filename=f"{nickname}_{i}.conf")
         except Exception as err:
             return False, err
 
@@ -66,4 +66,4 @@ if __name__ == '__main__':
     bash = Bash(host=os.environ['HOST'], user=os.environ['USER'], password=os.environ['PASSWORD'])
     disk = yadisk.YaDisk(id=os.environ['DISK_ID'], secret=os.environ['DISK_SECRET'], token=os.environ['DISK_TOKEN'])
     vpn = Pivpn(bash, disk)
-    vpn.add_new_user('Григорий', '30.07.2022', '1', '1', 1, no_ads=True)
+    vpn.add_new_user('Григорий', '30.07.2022', '1', '1', 1, no_ads=False, qr=False)
