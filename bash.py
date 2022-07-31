@@ -23,6 +23,7 @@ class Bash:
             sftp_client.chdir(directory)
             sftp_client.get(filename, filename)
             sftp_client.close()
+            return True, 'Ok'
         except Exception as err:
             return False, err
 
@@ -34,6 +35,7 @@ class Bash:
             sftp_client.putfo(f, filename_to)
             f.close()
             sftp_client.close()
+            return True, 'Ok'
         except Exception as err:
             return False, err
 

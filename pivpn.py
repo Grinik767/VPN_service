@@ -67,6 +67,7 @@ class Pivpn:
                     self.disk.upload(path_or_file=f'{nickname}_{i}.conf', dst_path=f'/VPN/{nickname}_{i}.conf',
                                      overwrite=True)
                     os.remove(f'{nickname}_{i}.conf')
+            return True, 'Ok'
         except Exception as err:
             return False, err
 
@@ -81,4 +82,4 @@ if __name__ == '__main__':
     bash = Bash(host=os.environ['HOST'], user=os.environ['USER'], password=os.environ['PASSWORD'])
     disk = yadisk.YaDisk(id=os.environ['DISK_ID'], secret=os.environ['DISK_SECRET'], token=os.environ['DISK_TOKEN'])
     vpn = Pivpn(bash, disk)
-    vpn.add_new_user('Григорий', '30.07.2022', '1', '1', 1, no_ads=False, qr=False)
+    print(vpn.add_new_user('Григорий', '30.07.2022', '1', '1', 1, no_ads=False, qr=False))
