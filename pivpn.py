@@ -45,8 +45,8 @@ class Pivpn:
         except Exception as err:
             return False, err
 
-    def add_new_user(self, name, date_s, date_f, cost, count, count_max=0, platform='Авито', phone='', qr=True,
-                     no_ads=False):
+    def add_new_client(self, name, date_s, date_f, cost, count, count_max=0, platform='Авито', phone='', qr=True,
+                       no_ads=False):
         try:
             self.disk.download(src_path='/VPN/Clients.xlsx', path_or_file='Clients.xlsx')
             if count_max == 0:
@@ -107,9 +107,27 @@ class Pivpn:
         except Exception as err:
             return False, err
 
-    def delete_user(self):
+    def delete_client(self, number):
         try:
-            pass
+            self.disk.download(src_path='/VPN/Clients.xlsx', path_or_file='Clients.xlsx')
+            wb = load_workbook('Clients.xlsx')
+            ws = wb.active
+            nickname = ws[f'B{number + 1}'].value
+            users = [user.split('_')[0] for user in self.get_list_users()[1]]
+            tries = users.count(nickname)
+            if tries > 0:
+                number_to_delete = users.index(nickname) + 1
+            else:
+                number_to_delete = 0
+            for i in range(tries):
+                self.bash.exec_command('pivpn -r', number_to_delete, 'y')
+            ws[f'A{number + 1}'], ws[f'B{number + 1}'], ws[f'C{number + 1}'], ws[f'D{number + 1}'], ws[
+                f'E{number + 1}'], ws[f'F{number + 1}'], ws[f'G{number + 1}'], ws[f'H{number + 1}'], ws[
+                f'I{number + 1}'] = '', '', '', '', '', '', '', '', ''
+            wb.save('Clients.xlsx')
+            self.disk.upload(path_or_file='Clients.xlsx', dst_path='/VPN/Clients.xlsx', overwrite=True)
+            os.remove('Clients.xlsx')
+            return True, 'Ok'
         except Exception as err:
             return False, err
 
@@ -121,4 +139,6 @@ if __name__ == '__main__':
     bash = Bash(host=os.environ['HOST'], user=os.environ['USER'], password=os.environ['PASSWORD'])
     disk = yadisk.YaDisk(id=os.environ['DISK_ID'], secret=os.environ['DISK_SECRET'], token=os.environ['DISK_TOKEN'])
     vpn = Pivpn(bash, disk)
-    print(vpn.add_new_user('Григорий', '30.07.2022', '30.08.2022', '1', 1, no_ads=False, qr=False))
+    #print(vpn.add_new_client('Григорий', '30.07.2022', '30.08.2022', '1', 3, no_ads=False, qr=False))
+    #print(vpn.get_list_clients()[1])
+    print(vpn.delete_client(20))
