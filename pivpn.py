@@ -13,13 +13,16 @@ class Pivpn:
         self.disk = disk
 
     def get_list_users(self, numbers=False):
-        data = self.bash.exec_command('pivpn -l')
-        if data[0]:
-            data = data[1]
-        data = [line.split()[0] for line in data.split('\n')[2:-1]]
-        if numbers:
-            data = [f'{line[0] + 1}. {line[1]}' for line in list(enumerate(data))]
-        return data
+        try:
+            data = self.bash.exec_command('pivpn -l')
+            if data[0]:
+                data = data[1]
+            data = [line.split()[0] for line in data.split('\n')[2:-1]]
+            if numbers:
+                data = [f'{line[0] + 1}. {line[1]}' for line in list(enumerate(data))]
+            return True, data
+        except Exception as err:
+            return False, err
 
     def get_list_clients(self):
         try:
@@ -32,7 +35,6 @@ class Pivpn:
                 time_s = ws[f"E{k}"].value
                 if time_s.__class__.__name__ == 'datetime':
                     time_s = time_s.strftime('%d.%m.%Y')
-                    print(time_s, k)
                 time_f = ws[f"F{k}"].value
                 if time_f.__class__.__name__ == 'datetime':
                     time_f = time_f.strftime('%d.%m.%Y')
@@ -75,7 +77,11 @@ class Pivpn:
                 self.bash.reload_file('/etc/pivpn/wireguard', 'NO_ADS.conf', 'setupVars.conf')
             else:
                 self.bash.reload_file('/etc/pivpn/wireguard', 'ADS.conf', 'setupVars.conf')
-            num = len(self.get_list_users())
+            num = self.get_list_users()
+            if num[0]:
+                num = len(num[1])
+            else:
+                raise KeyError
             for i in range(1, count + 1):
                 self.bash.exec_command('pivpn add', f"{nickname}_{i}")
                 num += 1
