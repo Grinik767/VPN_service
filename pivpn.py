@@ -82,6 +82,7 @@ class Pivpn:
                 num = len(num[1])
             else:
                 raise KeyError
+            links = []
             for i in range(1, count + 1):
                 self.bash.exec_command('pivpn add', f"{nickname}_{i}")
                 num += 1
@@ -97,7 +98,11 @@ class Pivpn:
                     self.bash.download_file('/home/vpn/configs', filename=f"{nickname}_{i}.conf")
                     self.disk.upload(path_or_file=f'{nickname}_{i}.conf', dst_path=f'/VPN/{nickname}_{i}.conf',
                                      overwrite=True)
+                    self.disk.publish(path=f'/VPN/{nickname}_{i}.conf')
+                    links.append(self.disk.get_download_link(path=f'/VPN/{nickname}_{i}.conf'))
                     os.remove(f'{nickname}_{i}.conf')
+            if not qr:
+                return True, links
             return True, 'Ok'
         except Exception as err:
             return False, err
@@ -117,4 +122,3 @@ if __name__ == '__main__':
     disk = yadisk.YaDisk(id=os.environ['DISK_ID'], secret=os.environ['DISK_SECRET'], token=os.environ['DISK_TOKEN'])
     vpn = Pivpn(bash, disk)
     print(vpn.add_new_user('Григорий', '30.07.2022', '30.08.2022', '1', 1, no_ads=False, qr=False))
-    print(vpn.get_list_clients())
