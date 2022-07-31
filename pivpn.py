@@ -1,5 +1,6 @@
 import os
 import yadisk
+import datetime
 from dotenv import load_dotenv
 from openpyxl import load_workbook
 from bash import Bash
@@ -20,6 +21,28 @@ class Pivpn:
             data = [f'{line[0] + 1}. {line[1]}' for line in list(enumerate(data))]
         return data
 
+    def get_list_clients(self):
+        try:
+            self.disk.download(src_path='/VPN/Clients.xlsx', path_or_file='Clients.xlsx')
+            wb = load_workbook('Clients.xlsx')
+            ws = wb.active
+            list_of_clients = []
+            k = 2
+            for client in ws['A'][1:]:
+                time_s = ws[f"E{k}"].value
+                if time_s.__class__.__name__ == 'datetime':
+                    time_s = time_s.strftime('%d.%m.%Y')
+                    print(time_s, k)
+                time_f = ws[f"F{k}"].value
+                if time_f.__class__.__name__ == 'datetime':
+                    time_f = time_f.strftime('%d.%m.%Y')
+                list_of_clients.append((k - 1, client.value, ws[f"C{k}"].value, time_s, time_f))
+                k += 1
+            os.remove('Clients.xlsx')
+            return True, list_of_clients
+        except Exception as err:
+            return False, err
+
     def add_new_user(self, name, date_s, date_f, cost, count, count_max=0, platform='Авито', phone='', qr=True,
                      no_ads=False):
         try:
@@ -33,13 +56,15 @@ class Pivpn:
                 if not ws[f'A{i}'].value:
                     s = i
                     break
-            nickname = f"Client{s}"
+            nickname = f"Client{s - 1}"
             ws[f'A{s}'] = name
             ws[f'B{s}'] = nickname
             ws[f'C{s}'] = platform
             ws[f'D{s}'] = phone
-            ws[f'E{s}'] = date_s
-            ws[f'F{s}'] = date_f
+            ws[f'E{s}'] = datetime.datetime.strptime(date_s, '%d.%m.%Y')
+            ws[f'E{s}'].number_format = 'DD.MM.YYYY'
+            ws[f'F{s}'] = datetime.datetime.strptime(date_f, '%d.%m.%Y')
+            ws[f'F{s}'].number_format = 'DD.MM.YYYY'
             ws[f'G{s}'] = cost
             ws[f'H{s}'] = count
             ws[f'I{s}'] = count_max
@@ -72,7 +97,10 @@ class Pivpn:
             return False, err
 
     def delete_user(self):
-        pass
+        try:
+            pass
+        except Exception as err:
+            return False, err
 
 
 if __name__ == '__main__':
@@ -82,4 +110,5 @@ if __name__ == '__main__':
     bash = Bash(host=os.environ['HOST'], user=os.environ['USER'], password=os.environ['PASSWORD'])
     disk = yadisk.YaDisk(id=os.environ['DISK_ID'], secret=os.environ['DISK_SECRET'], token=os.environ['DISK_TOKEN'])
     vpn = Pivpn(bash, disk)
-    print(vpn.add_new_user('Григорий', '30.07.2022', '1', '1', 1, no_ads=False, qr=False))
+    print(vpn.add_new_user('Григорий', '30.07.2022', '30.08.2022', '1', 1, no_ads=False, qr=False))
+    print(vpn.get_list_clients())
