@@ -130,15 +130,3 @@ class Pivpn:
             return True, 'Ok'
         except Exception as err:
             return False, err
-
-
-if __name__ == '__main__':
-    dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
-    if os.path.exists(dotenv_path):
-        load_dotenv(dotenv_path)
-    bash = Bash(host=os.environ['HOST'], user=os.environ['USER'], password=os.environ['PASSWORD'])
-    disk = yadisk.YaDisk(id=os.environ['DISK_ID'], secret=os.environ['DISK_SECRET'], token=os.environ['DISK_TOKEN'])
-    vpn = Pivpn(bash, disk)
-    #print(vpn.add_new_client('Григорий', '30.07.2022', '30.08.2022', '1', 3, no_ads=False, qr=False))
-    #print(vpn.get_list_clients()[1])
-    print(vpn.delete_client(20))
