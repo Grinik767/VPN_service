@@ -1,5 +1,6 @@
 import telebot
 import os
+import datetime
 from dotenv import load_dotenv
 from telebot import types
 
@@ -13,11 +14,84 @@ bot = telebot.TeleBot(os.environ['BOT_TOKEN'])
 def start(message):
     if message.chat.type == 'private' and message.chat.username in os.environ['HAVE_PERMISSION'].split(','):
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        markup.add(types.KeyboardButton("/Add_user"), types.KeyboardButton("/Delete_user"),
-                   types.KeyboardButton("/Get_info_clients"), types.KeyboardButton("/Get_info_server"))
+        markup.add(types.KeyboardButton("/add_user"), types.KeyboardButton("/delete_user"),
+                   types.KeyboardButton("/get_info_clients"), types.KeyboardButton("/get_info_server"))
         bot.send_message(message.chat.id, "Доступ разрешен", reply_markup=markup)
     else:
         bot.send_message(message.chat.id, "Произошла ошибка, попробуйте позже.")
+
+
+@bot.message_handler(commands=["add_user"])
+def add_user(message):
+    if message.chat.type == 'private' and message.chat.username in os.environ['HAVE_PERMISSION'].split(','):
+        bot.send_message(message.chat.id, "Введите имя клиента:")
+        bot.register_next_step_handler(message, get_name)
+    else:
+        bot.send_message(message.chat.id, "Произошла ошибка, попробуйте позже.")
+
+
+def get_name(message):
+    global name
+    name = message.text
+    bot.send_message(message.chat.id, 'Площадка ("1" если площадка Авито):')
+    bot.register_next_step_handler(message, get_place)
+
+
+def get_place(message):
+    global place
+    place = message.text
+    bot.send_message(message.chat.id, 'Номер телефона без "+" ("1" если не нужен):')
+    bot.register_next_step_handler(message, get_phone)
+
+
+def get_phone(message):
+    global phone
+    phone = message.text
+    bot.send_message(message.chat.id, 'Дата крайней оплаты ("1" если пробный период"):')
+    bot.register_next_step_handler(message, get_date_start)
+
+
+def get_date_start(message):
+    global date_start
+    try:
+        date_start = message.text
+        date_start_check = datetime.datetime.strptime(date_start, "%d.%m.%Y")
+    except Exception:
+        date_start_check = datetime.datetime.now() + datetime.timedelta(days=365 * 1000)
+    if date_start == '1' or date_start_check <= datetime.datetime.now():
+        bot.send_message(message.chat.id, 'Оплачен до:')
+        bot.register_next_step_handler(message, get_date_finish)
+    else:
+        bot.send_message(message.from_user.id, 'Неправильный формат даты')
+        bot.register_next_step_handler(message, get_date_start)
+
+
+def get_date_finish(message):
+    global date_finish
+    date_finish = message.text
+    bot.send_message(message.chat.id, 'Стоимость:')
+    bot.register_next_step_handler(message, get_price)
+
+
+def get_price(message):
+    global price
+    price = message.text
+    bot.send_message(message.chat.id, 'Кол-во устройств:')
+    bot.register_next_step_handler(message, get_amount_devices)
+
+
+def get_amount_devices(message):
+    global amount_devices, name, place, phone, date_start, date_finish, price
+    amount_devices = message.text
+    if phone == "1":
+        phone = ""
+    if place == "1":
+        place = "Авито"
+    if date_start == "1":
+        date_start = ""
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.add(types.KeyboardButton(text='Да'), types.KeyboardButton(text='Нет'))
+    bot.send_message(message.chat.id, f"{name}-{place}-{phone}-{date_start}-{date_finish}-{price}")
 
 
 bot.polling(none_stop=True, interval=0)
