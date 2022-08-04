@@ -55,6 +55,14 @@ def callback(call):
             block = False
         bot.send_message(MESSAGE.chat.id, 'Кол-во устройств:')
         bot.register_next_step_handler(MESSAGE, get_amount_devices)
+    elif 'add' in call.data:
+        if call.data == 'yes_add':
+            print(True)
+        else:
+            markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+            markup.add(types.KeyboardButton("/add_user"), types.KeyboardButton("/delete_user"),
+                       types.KeyboardButton("/get_info_clients"), types.KeyboardButton("/get_info_server"))
+            bot.send_message(MESSAGE.chat.id, "Возвращаюсь в меню", reply_markup=markup)
 
 
 def get_name(message):
@@ -120,15 +128,29 @@ def get_price(message):
 def get_amount_devices(message):
     global amount_devices, place, phone, date_start
     amount_devices = message.text
+    phone_to_check = phone
+    date_start_to_check = date_start
+    if qr:
+        qr_to_check = 'QR коды'
+    else:
+        qr_to_check = 'Файлы'
+    if block:
+        block_to_check = 'С блокировкой рекламы'
+    else:
+        block_to_check = 'Без блокировки рекламы'
     if phone == "1":
         phone = ""
+        phone_to_check = 'Телефон не нужен'
     if place == "1":
         place = "Авито"
     if date_start == "1":
         date_start = ""
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add(types.KeyboardButton(text='Да'), types.KeyboardButton(text='Нет'))
-    bot.send_message(message.chat.id, f"{name}-{place}-{phone}-{date_start}-{date_finish}-{price}-QR:{qr}-блок:{block}")
+        date_start_to_check = 'Пробный период'
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text='Да', callback_data='yes_add'))
+    markup.add(types.InlineKeyboardButton(text='Нет', callback_data='no_add'))
+    data_to_check = f"Данные верны?\n\n{name}-{place}-{phone_to_check}-{date_start_to_check}-{date_finish}-{qr_to_check}-{block_to_check}-{price}р-{amount_devices} устройство/а"
+    bot.send_message(message.chat.id, data_to_check, reply_markup=markup)
 
 
 bot.polling(none_stop=True, interval=0)
