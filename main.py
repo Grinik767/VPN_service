@@ -1,13 +1,20 @@
 import telebot
 import os
 import datetime
+import yadisk
 from dotenv import load_dotenv
 from telebot import types
+from bash import Bash
+from pivpn import Pivpn
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 if os.path.exists(dotenv_path):
     load_dotenv(dotenv_path)
 bot = telebot.TeleBot(os.environ['BOT_TOKEN'])
+bash = Bash(host=os.environ['HOST'], user=os.environ['USER'], password=os.environ['PASSWORD'])
+disk = yadisk.YaDisk(id=os.environ['DISK_ID'], secret=os.environ['DISK_SECRET'],
+                     token=os.environ['DISK_TOKEN'])
+vpn = Pivpn(bash, disk)
 
 global MESSAGE, qr, name, place, phone, date_start, date_finish, price, amount_devices, block
 
@@ -57,7 +64,25 @@ def callback(call):
         bot.register_next_step_handler(MESSAGE, get_amount_devices)
     elif 'add' in call.data:
         if call.data == 'yes_add':
-            print(True)
+            result = vpn.add_new_client(name=name, date_s=date_start, date_f=date_finish, cost=price,
+                                        count=int(amount_devices), platform=place, phone=phone, qr=qr, no_ads=block)
+            markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+            markup.add(types.KeyboardButton("/add_user"), types.KeyboardButton("/delete_user"),
+                       types.KeyboardButton("/get_info_clients"), types.KeyboardButton("/get_info_server"))
+            if result[0]:
+                if qr:
+                    nickname = result[1]
+                    for i in range(1, int(amount_devices) + 1):
+                        bot.send_photo(MESSAGE.chat.id, open(f'{nickname}_{i}.jpg', 'rb'))
+                        os.remove(f'{nickname}_{i}.jpg')
+                else:
+                    links = result[1]
+                    for link in links:
+                        bot.send_message(MESSAGE.chat.id, link)
+                bot.send_message(MESSAGE.chat.id, "Пользователь добавлен", reply_markup=markup)
+            else:
+                print(result[1])
+                bot.send_message(MESSAGE.chat.id, "Произошла ошибка", reply_markup=markup)
         else:
             markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
             markup.add(types.KeyboardButton("/add_user"), types.KeyboardButton("/delete_user"),

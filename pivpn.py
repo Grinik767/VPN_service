@@ -1,9 +1,6 @@
 import os
-import yadisk
 import datetime
-from dotenv import load_dotenv
 from openpyxl import load_workbook
-from bash import Bash
 from txt_to_img import textfile_to_image
 
 
@@ -63,8 +60,11 @@ class Pivpn:
             ws[f'B{s}'] = nickname
             ws[f'C{s}'] = platform
             ws[f'D{s}'] = phone
-            ws[f'E{s}'] = datetime.datetime.strptime(date_s, '%d.%m.%Y')
-            ws[f'E{s}'].number_format = 'DD.MM.YYYY'
+            if date_s != "":
+                ws[f'E{s}'] = datetime.datetime.strptime(date_s, '%d.%m.%Y')
+                ws[f'E{s}'].number_format = 'DD.MM.YYYY'
+            else:
+                ws[f'E{s}'] = date_s
             ws[f'F{s}'] = datetime.datetime.strptime(date_f, '%d.%m.%Y')
             ws[f'F{s}'].number_format = 'DD.MM.YYYY'
             ws[f'G{s}'] = cost
@@ -103,7 +103,7 @@ class Pivpn:
                     os.remove(f'{nickname}_{i}.conf')
             if not qr:
                 return True, links
-            return True, 'Ok'
+            return True, nickname
         except Exception as err:
             return False, err
 
