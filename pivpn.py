@@ -113,14 +113,10 @@ class Pivpn:
             wb = load_workbook('Clients.xlsx')
             ws = wb.active
             nickname = ws[f'B{number + 1}'].value
-            users = [user.split('_')[0] for user in self.get_list_users()[1]]
-            tries = users.count(nickname)
-            if tries > 0:
-                number_to_delete = users.index(nickname) + 1
-            else:
-                number_to_delete = 0
-            for i in range(tries):
-                self.bash.exec_command('pivpn -r', number_to_delete, 'y')
+            users = self.get_list_users()[1]
+            numbers_to_delete = [i + 1 for i in range(len(users)) if users[i].startswith(nickname)]
+            for i in range(len(numbers_to_delete)):
+                self.bash.exec_command('pivpn -r', numbers_to_delete[i] - i, 'y')
             ws[f'A{number + 1}'], ws[f'B{number + 1}'], ws[f'C{number + 1}'], ws[f'D{number + 1}'], ws[
                 f'E{number + 1}'], ws[f'F{number + 1}'], ws[f'G{number + 1}'], ws[f'H{number + 1}'], ws[
                 f'I{number + 1}'] = '', '', '', '', '', '', '', '', ''
