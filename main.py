@@ -55,18 +55,34 @@ def delete_user(message):
             bot.send_message(message.chat.id, f"Выберите клиента для удаления (номер):\n\n{clients}")
             bot.register_next_step_handler(message, get_number_to_delete)
         else:
-            bot.send_message(message.chat.id, "Произошла ошибка, попробуйте позже.")
+            bot.send_message(message.chat.id, "Произошла ошибка")
+    else:
+        bot.send_message(message.chat.id, "Произошла ошибка, попробуйте позже.")
 
 
 @bot.message_handler(commands=['get_info_clients'])
 def get_info_clients(message):
-    global MESSAGE
     if message.chat.type == 'private' and message.chat.username in os.environ['HAVE_PERMISSION'].split(','):
         clients = vpn.get_list_clients()
         if clients[0]:
             clients = '\n'.join(
                 ['-'.join(['данные отсутствуют' if not par else par for par in client]) for client in clients[1]])
             bot.send_message(message.chat.id, clients)
+        else:
+            bot.send_message(message.chat.id, "Произошла ошибка")
+    else:
+        bot.send_message(message.chat.id, "Произошла ошибка, попробуйте позже.")
+
+
+@bot.message_handler(commands=['get_info_server'])
+def get_info_server(message):
+    if message.chat.type == 'private' and message.chat.username in os.environ['HAVE_PERMISSION'].split(','):
+        users = vpn.get_list_users(numbers=True)
+        if users[0]:
+            users = '\n'.join(users[1])
+            bot.send_message(message.chat.id, users)
+        else:
+            bot.send_message(message.chat.id, "Произошла ошибка")
     else:
         bot.send_message(message.chat.id, "Произошла ошибка, попробуйте позже.")
 
