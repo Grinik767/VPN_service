@@ -58,6 +58,19 @@ def delete_user(message):
             bot.send_message(message.chat.id, "Произошла ошибка, попробуйте позже.")
 
 
+@bot.message_handler(commands=['get_info_clients'])
+def get_info_clients(message):
+    global MESSAGE
+    if message.chat.type == 'private' and message.chat.username in os.environ['HAVE_PERMISSION'].split(','):
+        clients = vpn.get_list_clients()
+        if clients[0]:
+            clients = '\n'.join(
+                ['-'.join(['данные отсутствуют' if not par else par for par in client]) for client in clients[1]])
+            bot.send_message(message.chat.id, clients)
+    else:
+        bot.send_message(message.chat.id, "Произошла ошибка, попробуйте позже.")
+
+
 @bot.callback_query_handler(func=lambda call: True)
 def callback(call):
     global qr, MESSAGE, block
@@ -103,9 +116,12 @@ def callback(call):
         markup.add(types.KeyboardButton("/add_user"), types.KeyboardButton("/delete_user"),
                    types.KeyboardButton("/get_info_clients"), types.KeyboardButton("/get_info_server"))
         if call.data == 'yes_delete':
-            if vpn.delete_client(int(number_to_delete))[0]:
-                bot.send_message(MESSAGE.chat.id, "Пользователь удален", reply_markup=markup)
-            else:
+            try:
+                if vpn.delete_client(int(number_to_delete))[0]:
+                    bot.send_message(MESSAGE.chat.id, "Пользователь удален", reply_markup=markup)
+                else:
+                    bot.send_message(MESSAGE.chat.id, "Произошла ошибка", reply_markup=markup)
+            except ValueError:
                 bot.send_message(MESSAGE.chat.id, "Произошла ошибка", reply_markup=markup)
         bot.send_message(MESSAGE.chat.id, "Возвращаюсь в меню", reply_markup=markup)
 

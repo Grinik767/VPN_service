@@ -117,9 +117,7 @@ class Pivpn:
             numbers_to_delete = [i + 1 for i in range(len(users)) if users[i].startswith(nickname)]
             for i in range(len(numbers_to_delete)):
                 self.bash.exec_command('pivpn -r', numbers_to_delete[i] - i, 'y')
-            ws[f'A{number + 1}'], ws[f'B{number + 1}'], ws[f'C{number + 1}'], ws[f'D{number + 1}'], ws[
-                f'E{number + 1}'], ws[f'F{number + 1}'], ws[f'G{number + 1}'], ws[f'H{number + 1}'], ws[
-                f'I{number + 1}'] = '', '', '', '', '', '', '', '', ''
+            ws.delete_rows(number + 1)
             wb.save('Clients.xlsx')
             self.disk.upload(path_or_file='Clients.xlsx', dst_path='/VPN/Clients.xlsx', overwrite=True)
             os.remove('Clients.xlsx')
