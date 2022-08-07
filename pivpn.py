@@ -21,7 +21,7 @@ class Pivpn:
         except Exception as err:
             return False, err
 
-    def get_list_clients(self):
+    def get_list_clients(self, py_time=False):
         try:
             self.disk.download(src_path='/VPN/Clients.xlsx', path_or_file='Clients.xlsx')
             wb = load_workbook('Clients.xlsx')
@@ -30,10 +30,10 @@ class Pivpn:
             k = 2
             for client in ws['A'][1:]:
                 time_s = ws[f"E{k}"].value
-                if time_s.__class__.__name__ == 'datetime':
+                if time_s.__class__.__name__ == 'datetime' and not py_time:
                     time_s = time_s.strftime('%d.%m.%Y')
                 time_f = ws[f"F{k}"].value
-                if time_f.__class__.__name__ == 'datetime':
+                if time_f.__class__.__name__ == 'datetime' and not py_time:
                     time_f = time_f.strftime('%d.%m.%Y')
                 list_of_clients.append([str(k - 1), client.value, ws[f"C{k}"].value, time_s, time_f])
                 k += 1
