@@ -35,7 +35,7 @@ class Pivpn:
                 time_f = ws[f"F{k}"].value
                 if time_f.__class__.__name__ == 'datetime':
                     time_f = time_f.strftime('%d.%m.%Y')
-                list_of_clients.append((k - 1, client.value, ws[f"C{k}"].value, time_s, time_f))
+                list_of_clients.append([str(k - 1), client.value, ws[f"C{k}"].value, time_s, time_f])
                 k += 1
             os.remove('Clients.xlsx')
             return True, list_of_clients

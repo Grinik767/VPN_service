@@ -16,7 +16,7 @@ disk = yadisk.YaDisk(id=os.environ['DISK_ID'], secret=os.environ['DISK_SECRET'],
                      token=os.environ['DISK_TOKEN'])
 vpn = Pivpn(bash, disk)
 
-global MESSAGE, qr, name, place, phone, date_start, date_finish, price, amount_devices, block
+global MESSAGE, qr, name, place, phone, date_start, date_finish, price, amount_devices, block, number_to_delete
 
 
 @bot.message_handler(commands=["start"])
@@ -41,6 +41,19 @@ def add_user(message):
         MESSAGE = message
     else:
         bot.send_message(message.chat.id, "Произошла ошибка, попробуйте позже.")
+
+
+@bot.message_handler(commands=['delete_user'])
+def delete_user(message):
+    if message.chat.type == 'private' and message.chat.username in os.environ['HAVE_PERMISSION'].split(','):
+        clients = vpn.get_list_clients()
+        if clients[0]:
+            clients = '\n'.join(
+                ['-'.join(['данные отсутствуют' if not par else par for par in client]) for client in clients[1]])
+            bot.send_message(message.chat.id, f"Выберите клиента для удаления (номер):\n\n{clients}")
+            bot.register_next_step_handler(message, get_number_to_delete)
+        else:
+            bot.send_message(message.chat.id, "Произошла ошибка, попробуйте позже.")
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -176,6 +189,16 @@ def get_amount_devices(message):
     markup.add(types.InlineKeyboardButton(text='Нет', callback_data='no_add'))
     data_to_check = f"Данные верны?\n\n{name}-{place}-{phone_to_check}-{date_start_to_check}-{date_finish}-{qr_to_check}-{block_to_check}-{price}р-{amount_devices} устройство/а"
     bot.send_message(message.chat.id, data_to_check, reply_markup=markup)
+
+
+def get_number_to_delete(message):
+    global number_to_delete
+    number_to_delete = message.text
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text='Да', callback_data='yes_delete'))
+    markup.add(types.InlineKeyboardButton(text='Нет', callback_data='no_delete'))
+    bot.send_message(message.chat.id, f"Вы уверены, что хотите удалить пользователя под номером {number_to_delete}?",
+                     reply_markup=markup)
 
 
 bot.polling(none_stop=True, interval=0)
