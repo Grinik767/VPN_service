@@ -45,7 +45,9 @@ def add_user(message):
 
 @bot.message_handler(commands=['delete_user'])
 def delete_user(message):
+    global MESSAGE
     if message.chat.type == 'private' and message.chat.username in os.environ['HAVE_PERMISSION'].split(','):
+        MESSAGE = message
         clients = vpn.get_list_clients()
         if clients[0]:
             clients = '\n'.join(
@@ -76,12 +78,12 @@ def callback(call):
         bot.send_message(MESSAGE.chat.id, 'Кол-во устройств:')
         bot.register_next_step_handler(MESSAGE, get_amount_devices)
     elif 'add' in call.data:
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        markup.add(types.KeyboardButton("/add_user"), types.KeyboardButton("/delete_user"),
+                   types.KeyboardButton("/get_info_clients"), types.KeyboardButton("/get_info_server"))
         if call.data == 'yes_add':
             result = vpn.add_new_client(name=name, date_s=date_start, date_f=date_finish, cost=price,
                                         count=int(amount_devices), platform=place, phone=phone, qr=qr, no_ads=block)
-            markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-            markup.add(types.KeyboardButton("/add_user"), types.KeyboardButton("/delete_user"),
-                       types.KeyboardButton("/get_info_clients"), types.KeyboardButton("/get_info_server"))
             if result[0]:
                 if qr:
                     nickname = result[1]
@@ -94,13 +96,18 @@ def callback(call):
                         bot.send_message(MESSAGE.chat.id, link)
                 bot.send_message(MESSAGE.chat.id, "Пользователь добавлен", reply_markup=markup)
             else:
-                print(result[1])
                 bot.send_message(MESSAGE.chat.id, "Произошла ошибка", reply_markup=markup)
-        else:
-            markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-            markup.add(types.KeyboardButton("/add_user"), types.KeyboardButton("/delete_user"),
-                       types.KeyboardButton("/get_info_clients"), types.KeyboardButton("/get_info_server"))
-            bot.send_message(MESSAGE.chat.id, "Возвращаюсь в меню", reply_markup=markup)
+        bot.send_message(MESSAGE.chat.id, "Возвращаюсь в меню", reply_markup=markup)
+    elif 'delete' in call.data:
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        markup.add(types.KeyboardButton("/add_user"), types.KeyboardButton("/delete_user"),
+                   types.KeyboardButton("/get_info_clients"), types.KeyboardButton("/get_info_server"))
+        if call.data == 'yes_delete':
+            if vpn.delete_client(int(number_to_delete))[0]:
+                bot.send_message(MESSAGE.chat.id, "Пользователь удален", reply_markup=markup)
+            else:
+                bot.send_message(MESSAGE.chat.id, "Произошла ошибка", reply_markup=markup)
+        bot.send_message(MESSAGE.chat.id, "Возвращаюсь в меню", reply_markup=markup)
 
 
 def get_name(message):
