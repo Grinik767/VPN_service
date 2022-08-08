@@ -1,0 +1,6 @@
+paramiko==2.11.0
+python-dotenv==0.20.0
+pyTelegramBotAPI==4.6.1
+yadisk==1.2.15
+openpyxl==3.0.10
+Pillow==9.2.0
