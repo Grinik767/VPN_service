@@ -1,5 +1,3 @@
-from math import ceil
-
 from PIL import (
     Image,
     ImageFont,
@@ -10,9 +8,9 @@ PIL_GRAYSCALE = 'L'
 PIL_WIDTH_INDEX = 0
 PIL_HEIGHT_INDEX = 1
 COMMON_MONO_FONT_FILENAMES = [
-    'DejaVuSansMono.ttf',  # Linux
+    '/usr/share/fonts/consola.ttf',  # Linux
     'Consolas Mono.ttf',  # MacOS, I think
-    'consola.ttf',  # Windows, I think
+    'consola.ttf',  # Windows
 ]
 
 
