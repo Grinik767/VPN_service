@@ -41,24 +41,24 @@ def textfile_to_image(textfile_path):
 
     # make a sufficiently sized background image based on the combination of font and lines
     font_points_to_pixels = lambda pt: round(pt * 96.0 / 72)
-    margin_pixels = 20
+    margin_pixels = 0
 
     # height of the background image
     tallest_line = max(lines, key=lambda line: font.getsize(line)[PIL_HEIGHT_INDEX])
     max_line_height = font_points_to_pixels(font.getsize(tallest_line)[PIL_HEIGHT_INDEX])
     realistic_line_height = max_line_height * 0.8  # apparently it measures a lot of space above visible content
-    image_height = 800
+    image_height = 760
 
     # width of the background image
-    image_width = 800
+    image_width = 760
 
     # draw the background
-    background_color = 255  # white
+    background_color = 0  # white
     image = Image.new(PIL_GRAYSCALE, (image_width, image_height), color=background_color)
     draw = ImageDraw.Draw(image)
 
     # draw each line of text
-    font_color = 0  # black
+    font_color = 255  # black
     horizontal_position = margin_pixels
     for i, line in enumerate(lines):
         vertical_position = int(round(margin_pixels + (i * realistic_line_height)))
