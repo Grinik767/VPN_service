@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 from telebot import types
 from bash import Bash
 from pivpn import Pivpn
-from pickle import dump
 
 global MESSAGE, qr, name, place, phone, date_start, date_finish, price, amount_devices, block, number_to_delete
 MESSAGE = None
