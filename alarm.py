@@ -32,4 +32,6 @@ if MESSAGE.chat.type == 'private' and MESSAGE.chat.username in os.environ['HAVE_
                 if client[-2].__class__.__name__ == 'datetime':
                     client[-2] = client[-2].strftime('%d.%m.%Y')
                 client[-1] = client[-1].strftime('%d.%m.%Y')
+                if not client[-2]:
+                    client[-2] = 'Пробный период'
                 bot.send_message(MESSAGE.chat.id, '-'.join(client))
