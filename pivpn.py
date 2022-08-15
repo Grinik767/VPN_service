@@ -50,12 +50,8 @@ class Pivpn:
                 count_max = count
             wb = load_workbook('Clients.xlsx')
             ws = wb.active
-            s = 0
-            for i in range(1, len(ws['A']) + 2):
-                if not ws[f'A{i}'].value:
-                    s = i
-                    break
-            nickname = f"Client{s - 1}"
+            s = len(ws['A']) + 1
+            nickname = f"Client{int(ws['B'][-1].value.split('Client')[-1]) + 1}"
             ws[f'A{s}'] = name
             ws[f'B{s}'] = nickname
             ws[f'C{s}'] = platform
