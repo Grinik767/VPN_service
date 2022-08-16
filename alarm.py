@@ -24,7 +24,7 @@ if MESSAGE.chat.type == 'private' and MESSAGE.chat.username in os.environ['HAVE_
         clients = clients[1]
         need_to_update = []
         for client in clients:
-            if client[-1].date() == datetime.datetime.now().date():
+            if client[-1].date() <= datetime.datetime.now().date():
                 need_to_update.append(client)
         if need_to_update:
             bot.send_message(MESSAGE.chat.id, "Обновите информацию о следующих клиентах:")
