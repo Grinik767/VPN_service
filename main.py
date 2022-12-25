@@ -56,7 +56,8 @@ def delete_user(message):
         clients = vpn.get_list_clients()
         if clients[0]:
             clients = '\n'.join(
-                ['-'.join(['данные отсутствуют' if not par else par for par in client]) for client in clients[1]])
+                ['-'.join(['данные отсутствуют' if not par else par for par in client]) + '\n' for client in
+                 clients[1]])
             bot.send_message(message.chat.id, f"Выберите клиента для удаления (номер):\n\n{clients}")
             bot.register_next_step_handler(message, get_number_to_delete)
         else:
@@ -73,7 +74,8 @@ def get_info_clients(message):
         MESSAGE = message
         if clients[0]:
             clients = '\n'.join(
-                ['-'.join(['данные отсутствуют' if not par else par for par in client]) for client in clients[1]])
+                ['-'.join(['данные отсутствуют' if not par else par for par in client]) + '\n' for client in
+                 clients[1]])
             bot.send_message(message.chat.id, clients)
         else:
             bot.send_message(message.chat.id, "Произошла ошибка")
@@ -250,9 +252,19 @@ def get_number_to_delete(message):
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text='Да', callback_data='yes_delete'))
     markup.add(types.InlineKeyboardButton(text='Нет', callback_data='no_delete'))
-    bot.send_message(message.chat.id,
-                     f"Вы уверены, что хотите удалить пользователя под номером {number_to_delete}?",
-                     reply_markup=markup)
+    try:
+        clients = vpn.get_list_clients()
+        client_name = clients[1][int(number_to_delete) - 1][1]
+        client_nickname = clients[1][int(number_to_delete) - 1][5]
+        bot.send_message(message.chat.id,
+                         f"Вы уверены, что хотите удалить пользователя под номером {number_to_delete} ({client_name}-{client_nickname})?",
+                         reply_markup=markup)
+    except Exception as err:
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        markup.add(types.KeyboardButton("/add_user"), types.KeyboardButton("/delete_user"),
+                   types.KeyboardButton("/get_info_clients"), types.KeyboardButton("/get_info_server"))
+        bot.send_message(MESSAGE.chat.id, "Произошла ошибка")
+        bot.send_message(MESSAGE.chat.id, "Возвращаюсь в меню", reply_markup=markup)
     act_button = True
 
 
