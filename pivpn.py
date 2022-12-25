@@ -21,9 +21,9 @@ class Pivpn:
         except Exception as err:
             return False, err
 
-    def get_list_clients(self, py_time=False):
+    def get_list_clients(self, py_time=False, src_path='/VPN/Clients.xlsx'):
         try:
-            self.disk.download(src_path='/VPN/Clients.xlsx', path_or_file='Clients.xlsx')
+            self.disk.download(src_path=src_path, path_or_file='Clients.xlsx')
             wb = load_workbook('Clients.xlsx')
             ws = wb.active
             list_of_clients = []
