@@ -7,8 +7,10 @@ from telebot import types
 from bash import Bash
 from pivpn import Pivpn
 
-global MESSAGE, qr, name, place, phone, date_start, date_finish, price, amount_devices, block, number_to_delete
+global MESSAGE, qr, name, place, phone, date_start, date_finish, price, amount_devices, block, number_to_delete, \
+    act_button
 MESSAGE = None
+act_button = False
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 if os.path.exists(dotenv_path):
@@ -96,7 +98,7 @@ def get_info_server(message):
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback(call):
-    global qr, MESSAGE, block
+    global qr, MESSAGE, block, act_button
     if 'QR' in call.data:
         if call.data == 'QR':
             qr = True
@@ -117,7 +119,7 @@ def callback(call):
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         markup.add(types.KeyboardButton("/add_user"), types.KeyboardButton("/delete_user"),
                    types.KeyboardButton("/get_info_clients"), types.KeyboardButton("/get_info_server"))
-        if call.data == 'yes_add':
+        if call.data == 'yes_add' and act_button:
             result = vpn.add_new_client(name=name, date_s=date_start, date_f=date_finish, cost=price,
                                         count=int(amount_devices), platform=place, phone=phone, qr=qr, no_ads=block)
             if result[0]:
@@ -133,12 +135,14 @@ def callback(call):
                 bot.send_message(MESSAGE.chat.id, "Пользователь добавлен", reply_markup=markup)
             else:
                 bot.send_message(MESSAGE.chat.id, "Произошла ошибка", reply_markup=markup)
-        bot.send_message(MESSAGE.chat.id, "Возвращаюсь в меню", reply_markup=markup)
+        elif act_button:
+            bot.send_message(MESSAGE.chat.id, "Возвращаюсь в меню", reply_markup=markup)
+        act_button = False
     elif 'delete' in call.data:
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         markup.add(types.KeyboardButton("/add_user"), types.KeyboardButton("/delete_user"),
                    types.KeyboardButton("/get_info_clients"), types.KeyboardButton("/get_info_server"))
-        if call.data == 'yes_delete':
+        if call.data == 'yes_delete' and act_button:
             try:
                 if vpn.delete_client(int(number_to_delete))[0]:
                     bot.send_message(MESSAGE.chat.id, "Пользователь удален", reply_markup=markup)
@@ -146,7 +150,9 @@ def callback(call):
                     bot.send_message(MESSAGE.chat.id, "Произошла ошибка", reply_markup=markup)
             except ValueError:
                 bot.send_message(MESSAGE.chat.id, "Произошла ошибка", reply_markup=markup)
-        bot.send_message(MESSAGE.chat.id, "Возвращаюсь в меню", reply_markup=markup)
+        elif act_button:
+            bot.send_message(MESSAGE.chat.id, "Возвращаюсь в меню", reply_markup=markup)
+        act_button = False
 
 
 def get_name(message):
@@ -201,12 +207,13 @@ def get_date_finish(message):
 
 
 def get_price(message):
-    global price
+    global price, act_button
     price = message.text
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text='Смартфоны', callback_data='QR'))
     markup.add(types.InlineKeyboardButton(text='ПК', callback_data='no_QR'))
     bot.send_message(message.chat.id, 'Тип устройств (смартфон или ПК):', reply_markup=markup)
+    act_button = True
 
 
 def get_amount_devices(message):
@@ -238,7 +245,7 @@ def get_amount_devices(message):
 
 
 def get_number_to_delete(message):
-    global number_to_delete
+    global number_to_delete, act_button
     number_to_delete = message.text
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(text='Да', callback_data='yes_delete'))
@@ -246,6 +253,7 @@ def get_number_to_delete(message):
     bot.send_message(message.chat.id,
                      f"Вы уверены, что хотите удалить пользователя под номером {number_to_delete}?",
                      reply_markup=markup)
+    act_button = True
 
 
 bot.polling(none_stop=True, interval=0)
