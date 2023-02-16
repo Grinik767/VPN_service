@@ -16,6 +16,26 @@ def check_date(clients):
     return need_to_update
 
 
+def make_array_to_update(path_to_table):
+    clients = vpn.get_list_clients(py_time=True, src_path=path_to_table)
+    res = []
+    if clients[0]:
+        clients = clients[1]
+        res = check_date(clients)
+    return res
+
+
+def send_info_update(phrase, array):
+    bot.send_message(MESSAGE.chat.id, f"{phrase}:")
+    for client in array:
+        if client[3].__class__.__name__ == 'datetime':
+            client[3] = client[3].strftime('%d.%m.%Y')
+        client[4] = client[4].strftime('%d.%m.%Y')
+        if not client[3]:
+            client[3] = 'Пробный период'
+        bot.send_message(MESSAGE.chat.id, '-'.join(client))
+
+
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 if os.path.exists(dotenv_path):
     load_dotenv(dotenv_path)
@@ -28,33 +48,14 @@ with open('default_message.pkl', mode='rb') as f:
     MESSAGE = load(f)
 
 if MESSAGE.chat.type == 'private' and MESSAGE.chat.username in os.environ['HAVE_PERMISSION'].split(','):
-    clients = vpn.get_list_clients(py_time=True, src_path='/VPN/Clients.xlsx')
-    need_to_update_1 = []
-    if clients[0]:
-        clients = clients[1]
-        need_to_update_1 = check_date(clients)
-    clients = vpn.get_list_clients(py_time=True, src_path='/VPN/Clients_Russia.xlsx')
-    need_to_update_2 = []
-    if clients[0]:
-        clients = clients[1]
-        need_to_update_2 = check_date(clients)
-    if len(need_to_update_1) > 0 or len(need_to_update_2) > 0:
+    need_to_update_1 = make_array_to_update('/VPN/Clients.xlsx')
+    need_to_update_2 = make_array_to_update('/VPN/Clients_Russia.xlsx')
+    need_to_update_3 = make_array_to_update('/VPN/Clients_Routers.xlsx')
+    if len(need_to_update_1) > 0 or len(need_to_update_2) > 0 or len(need_to_update_3) > 0:
         bot.send_message(MESSAGE.chat.id, "Обновите информацию о следующих клиентах:")
         if len(need_to_update_1) > 0:
-            bot.send_message(MESSAGE.chat.id, "Европейские сервера:")
-            for client in need_to_update_1:
-                if client[3].__class__.__name__ == 'datetime':
-                    client[3] = client[3].strftime('%d.%m.%Y')
-                client[4] = client[4].strftime('%d.%m.%Y')
-                if not client[3]:
-                    client[3] = 'Пробный период'
-                bot.send_message(MESSAGE.chat.id, '-'.join(client))
+            send_info_update('Немецкий сервер (Wireguard)', need_to_update_1)
         if len(need_to_update_2) > 0:
-            bot.send_message(MESSAGE.chat.id, "Российский сервер:")
-            for client in need_to_update_2:
-                if client[3].__class__.__name__ == 'datetime':
-                    client[3] = client[3].strftime('%d.%m.%Y')
-                client[4] = client[4].strftime('%d.%m.%Y')
-                if not client[3]:
-                    client[3] = 'Пробный период'
-                bot.send_message(MESSAGE.chat.id, '-'.join(client))
+            send_info_update('Российский сервер (Wireguard)', need_to_update_2)
+        if len(need_to_update_3) > 0:
+            send_info_update('Польский сервер (OpenVPN)', need_to_update_3)
