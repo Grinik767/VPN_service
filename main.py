@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from telebot import types
 from bash import Bash
 from pivpn import Pivpn
+from text_func import *
 
 global MESSAGE, qr, name, place, phone, date_start, date_finish, price, amount_devices, block, number_to_delete, \
     act_button
@@ -58,7 +59,8 @@ def delete_user(message):
             clients = '\n'.join(
                 ['-'.join(['данные отсутствуют' if not par else par for par in client]) + '\n' for client in
                  clients[1]])
-            bot.send_message(message.chat.id, f"Выберите клиента для удаления (номер):\n\n{clients}")
+            send_split_message(bot, message.chat.id,
+                               split_message(f"Выберите клиента для удаления (номер):\n\n{clients}"))
             bot.register_next_step_handler(message, get_number_to_delete)
         else:
             bot.send_message(message.chat.id, "Произошла ошибка")
@@ -76,7 +78,7 @@ def get_info_clients(message):
             clients = '\n'.join(
                 ['-'.join(['данные отсутствуют' if not par else par for par in client]) + '\n' for client in
                  clients[1]])
-            bot.send_message(message.chat.id, clients)
+            send_split_message(bot, message.chat.id, split_message(clients))
         else:
             bot.send_message(message.chat.id, "Произошла ошибка")
     else:
@@ -91,7 +93,7 @@ def get_info_server(message):
         MESSAGE = message
         if users[0]:
             users = '\n'.join(users[1])
-            bot.send_message(message.chat.id, users)
+            send_split_message(bot, message.chat.id, split_message(users))
         else:
             bot.send_message(message.chat.id, "Произошла ошибка")
     else:
